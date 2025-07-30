@@ -35,6 +35,7 @@ export default async function Home() {
     <div className="h-screen flex flex-col gap-4 p-4">
       <form className="w-full flex flex-col gap-4 max-w-xl mx-auto">
         <h1 className="text-2xl font-bold text-center">Hello World</h1>
+        <p className="text-sm text-gray-500 text-center">🚀 CI/CD 自动化测试</p>
         <Input name="name" type="text" placeholder="Enter your name" />
         <Textarea name="message" placeholder="Enter your message" />
         <Button type="submit">Submit</Button>
