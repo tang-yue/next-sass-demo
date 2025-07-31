@@ -9,7 +9,7 @@ import {
 // import postgres from "postgres"
 import { drizzle } from "drizzle-orm/postgres-js"
 import { AdapterAccount } from "next-auth/adapters"
- 
+
 // const connectionString = "postgres://postgres:postgres@localhost:5432/drizzle"
 // const pool = postgres(connectionString, { max: 1 })
  
@@ -20,11 +20,11 @@ export const users = pgTable("user", {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: text("name"),
-  email: text("email").unique(),
+  email: text("email").unique().notNull(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
 })
- 
+
 export const accounts = pgTable(
   "account",
   {
@@ -50,6 +50,7 @@ export const accounts = pgTable(
     },
   ]
 )
+
  
 export const sessions = pgTable("session", {
   sessionToken: text("sessionToken").primaryKey(),
@@ -58,6 +59,7 @@ export const sessions = pgTable("session", {
     .references(() => users.id, { onDelete: "cascade" }),
   expires: timestamp("expires", { mode: "date" }).notNull(),
 })
+
  
 export const verificationTokens = pgTable(
   "verificationToken",
@@ -74,6 +76,7 @@ export const verificationTokens = pgTable(
     },
   ]
 )
+
  
 export const authenticators = pgTable(
   "authenticator",
