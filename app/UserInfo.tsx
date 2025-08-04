@@ -3,12 +3,12 @@
 import { useSession, SessionProvider } from "next-auth/react"
 
 export function UserInfo() {
-  const { data: session } = useSession()
+  // const { data: session } = useSession()
   return <div>
     <p>UserInfo</p>
-    <p>{session?.user?.name}</p>
+    {/* <p>{session?.user?.name}</p>
     <p>{session?.user?.email}</p>
-    <p>{session?.user?.image}</p>
+    <p>{session?.user?.image}</p> */}
   </div>
 }
 

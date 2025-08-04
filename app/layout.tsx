@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { getServerSession } from "@/server/auth";
 import { redirect } from "next/navigation";
+import { TRPCReactProvider } from "./TrpcProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,16 +27,18 @@ export default async function RootLayout({
 }>) {
   const session = await getServerSession()
   console.log(session)
-  if (!session?.user) {
-    console.log("no session")
-    redirect("/api/auth/signin")
-  }
+  // if (!session?.user) {
+  //   console.log("no session")
+  //   redirect("/api/auth/signin")
+  // }
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <TRPCReactProvider>
+          {children}
+        </TRPCReactProvider>
       </body>
     </html>
   );

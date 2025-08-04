@@ -9,12 +9,11 @@ import {
 } from "./schema";
 
 
-export const userInsertSchema = createInsertSchema(users,{
-  email: z.string().email(),  
+export const userInsertSchema = createInsertSchema(users, {
+  email: (schema) => schema.email(),
 })
 export const userUpdateSchema = userInsertSchema.pick(
   {
-    name: true,
     email: true,
   }
 )

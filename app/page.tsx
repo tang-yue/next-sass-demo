@@ -1,5 +1,5 @@
 // import Image from "next/image";
-
+'use client'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,41 +7,32 @@ import { usersTable } from "@/server/db/schema-back";
 import { db } from "@/server/db/db";
 import { UserInfo, UserInfoProvider } from "./UserInfo";
 import { LoginButton } from "./LoginButton";
-import { getServerSession } from "@/server/auth";
-import { redirect } from "next/navigation";
+// import { getServerSession } from "@/server/auth";
+// import { redirect } from "next/navigation";
+import { cache, useEffect   } from "react";
+import { useQuery, dehydrate } from "@tanstack/react-query";
+import { makeQueryClient, useTRPC } from "./TrpcProvider";
+import { success } from "zod/v4";
+// import { trpc } from "@/utils/api";
 
-type User = typeof usersTable.$inferSelect;
+// type User = typeof usersTable.$inferSelect;
 
-export default async function Home() {
+export default function Home(props: {
+  children: React.ReactNode
+}) {
   // 获取现有用户，而不是每次都插入新数据
-  // let users: User[] = [];
-  // const session = await getServerSession()
-
-  // console.log(session)
-  // if (!session?.user) {
-  //   console.log("no session")
-  //   redirect("/api/auth/signin")
+ 
+  const trpc = useTRPC();
+  const { data, isLoading, error, isSuccess } = useQuery(trpc.hello.queryOptions());
+  // if (isSuccess) {
+    console.log(data, "data isSuccess")
   // }
-  // try {
-  //   users = await db.query.usersTable.findMany();
-    
-  //   // 只有在没有用户时才插入示例数据
-  //   if (users.length === 0) {
-  //     await db.insert(usersTable).values([
-  //       {
-  //         name: 'John',
-  //         age: 30,
-  //         email: 'john@example.com',
-  //       },
-  //     ]);
-  //     // 重新获取用户列表
-  //     users = await db.query.usersTable.findMany();
-  //   }
-  // } catch (error) {
-  //   console.error('Database error:', error);
-  //   users = [];
-  // }
-  
+  // const _queryClient = cache(makeQueryClient);
+  // void _queryClient().prefetchQuery(trpc.hello.queryOptions());
+  // const queryClient = _queryClient();
+  // const { data } = useQuery(trpc.hello.queryOptions());
+  // console.log(data, "data")
+  // console.log(dehydrate(_queryClient), "dehydrate")
   return (
     <UserInfoProvider>
       <div className="h-screen flex flex-col gap-8 p-4">
