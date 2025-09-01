@@ -9,6 +9,9 @@ import {
 // import postgres from "postgres"
 import { drizzle } from "drizzle-orm/postgres-js"
 import { AdapterAccount } from "next-auth/adapters"
+import { uuid } from "drizzle-orm/pg-core"
+import { varchar } from "drizzle-orm/pg-core"
+import { relations } from "drizzle-orm"
 
 // const connectionString = "postgres://postgres:postgres@localhost:5432/drizzle"
 // const pool = postgres(connectionString, { max: 1 })
@@ -100,3 +103,29 @@ export const authenticators = pgTable(
     },
   ]
 )
+
+export const files = pgTable("files", {
+  id: uuid("id").notNull().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  type: varchar("type", { length: 100 }).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  deletedAt: timestamp("deleted_at", { mode: "date" }),
+  path: varchar("path", { length: 1024 }).notNull(),
+  url: varchar("url", { length: 1024 }).notNull(),
+  userId: text("user_id").notNull(),
+  contentType: varchar("content_type", { length: 100 }).notNull(),
+});
+
+export const photosRelations = relations(files, ({ one }) => ({
+  photos: one(users, { fields: [files.userId], references: [users.id] }),
+}));
+
+const schemas = {
+  users,
+  accounts,
+  sessions,
+  verificationTokens,
+  authenticators,
+  files,
+};
+export default schemas;

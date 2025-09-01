@@ -1,0 +1,88 @@
+/* 瀑布流布局 */
+.masonryContainer {
+  column-count: 4;
+  column-gap: 16px;
+  break-inside: avoid;
+}
+
+.masonryItem {
+  break-inside: avoid;
+  margin-bottom: 16px;
+  display: inline-block;
+  width: 100%;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .masonryContainer {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 768px) {
+  .masonryContainer {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .masonryContainer {
+    column-count: 1;
+  }
+}
+
+/* 上传区域样式 */
+.uploadDragger {
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.uploadDragger:hover {
+  border-color: #1890ff;
+  background: #f0f8ff;
+}
+
+/* 文件卡片样式 */
+.fileCard {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.fileCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* 非图片文件占位符 */
+.filePlaceholder {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+/* 进度条样式 */
+.progressBar {
+  background: linear-gradient(90deg, #1890ff, #40a9ff);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* 加载状态 */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
