@@ -17,9 +17,7 @@ import { success } from "zod/v4";
 
 // type User = typeof usersTable.$inferSelect;
 
-export default function Home(props: {
-  children: React.ReactNode
-}) {
+export default function Home() {
   // 获取现有用户，而不是每次都插入新数据
  
   const trpc = useTRPC();

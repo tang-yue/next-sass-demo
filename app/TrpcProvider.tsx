@@ -2,7 +2,8 @@
 import { QueryClient, QueryClientProvider, defaultShouldDehydrateQuery  } from '@tanstack/react-query';
 import { createTRPCClient, httpBatchLink } from '@trpc/client';
 import { cache, useState } from 'react';
-import { AppRouter, appRouter } from '../utils/trpc';
+import { AppRouter } from '../utils/trpc';
+import { appRouter } from '../server/router';
 import { trpcClient } from '../utils/api';
 import { createTRPCContext } from '@trpc/tanstack-react-query';
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';

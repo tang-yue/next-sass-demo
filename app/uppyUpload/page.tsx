@@ -3,14 +3,17 @@ import { Uppy } from '@uppy/core';
 import AWSS3 from '@uppy/aws-s3';
 import { useEffect, useState } from 'react';
 import { useUppyState } from './useUppyState';
-import { Upload, Button, Card, Image, message, Spin } from 'antd';
+import { Upload, Button, Card, Image, Spin, App } from 'antd';
 import { InboxOutlined, FileOutlined } from '@ant-design/icons';
 import { trpcClient } from '@/utils/api';
 import type { UploadFile, UploadProps } from 'antd';
 import styles from './page.module.css';
 import { useQuery } from '@tanstack/react-query';
+import { DeleteFileDialog } from '@/app/uppyUpload/components/DeleteFileDialog';
+import { CopyFileUrl } from '@/app/uppyUpload/components/CopyFileUrl';
 
 export default function UppyUpload() {
+  const { message } = App.useApp();
   const [uppy, setUppy] = useState(() => {
     const uppy = new Uppy();
     uppy.use(AWSS3, {
@@ -90,6 +93,18 @@ export default function UppyUpload() {
   // 判断是否为图片
   const isImage = (contentType: string) => {
     return contentType.startsWith('image/');
+  };
+
+  // 删除文件
+  const handleDeleteFile = async (fileId: string) => {
+    try {
+      await trpcClient.file.deleteFile.mutate({ fileId });
+      message.success('文件删除成功！');
+      refetch(); // 重新获取文件列表
+    } catch (error) {
+      console.error('删除文件失败:', error);
+      message.error('删除文件失败！');
+    }
   };
 
 
@@ -173,6 +188,19 @@ export default function UppyUpload() {
                         </div>
                       )
                     }
+                    actions={[
+                      <CopyFileUrl 
+                        key="copy"
+                        fileUrl={file.url}
+                        fileName={file.name}
+                      />,
+                      <DeleteFileDialog
+                        key="delete"
+                        fileId={file.id}
+                        fileName={file.name}
+                        onDelete={handleDeleteFile}
+                      />
+                    ]}
                   >
                     <Card.Meta
                       title={

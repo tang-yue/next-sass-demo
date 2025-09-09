@@ -11,7 +11,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { db } from "../db/db";
 import { files } from "../db/schema";
 import { v4 as uuidv4 } from "uuid";
-import { eq, desc, count } from "drizzle-orm";
+import { eq, desc, count, and, isNull } from "drizzle-orm";
 
 // 从环境变量获取配置
 const bucket = process.env.COS_BUCKET;
@@ -42,7 +42,12 @@ export const fileRoutes = router({
       const filesList = await db
         .select()
         .from(files)
-        .where(eq(files.userId, (session?.user as { id: string })?.id || ""))
+        .where(
+          and(
+            eq(files.userId, (session?.user as { id: string })?.id || ""),
+            isNull(files.deletedAt)
+          )
+        )
         .orderBy(desc(files.createdAt))
         .limit(input.limit)
         .offset(offset);
@@ -50,7 +55,12 @@ export const fileRoutes = router({
       const totalCount = await db
         .select({ count: count() })
         .from(files)
-        .where(eq(files.userId, (session?.user as { id: string })?.id || ""));
+        .where(
+          and(
+            eq(files.userId, (session?.user as { id: string })?.id || ""),
+            isNull(files.deletedAt)
+          )
+        );
 
       return {
         files: filesList,
@@ -126,5 +136,46 @@ export const fileRoutes = router({
       }).returning();
 
       return photo[0];
-    })
+    }),
+
+  // 删除文件（软删除）
+  deleteFile: protectedProcedure
+    .input(
+      z.object({
+        fileId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { session } = ctx;
+      const userId = (session?.user as { id: string })?.id || "";
+
+      // 检查文件是否属于当前用户
+      const existingFile = await db
+        .select()
+        .from(files)
+        .where(
+          and(
+            eq(files.id, input.fileId),
+            eq(files.userId, userId),
+            isNull(files.deletedAt)
+          )
+        )
+        .limit(1);
+
+      if (existingFile.length === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "文件不存在或无权限删除",
+        });
+      }
+
+      // 软删除：设置 deletedAt 为当前时间
+      const deletedFile = await db
+        .update(files)
+        .set({ deletedAt: new Date() })
+        .where(eq(files.id, input.fileId))
+        .returning();
+
+      return deletedFile[0];
+    }),
 })

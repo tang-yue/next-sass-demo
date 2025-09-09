@@ -4,6 +4,7 @@ import "./globals.css";
 import { getServerSession } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { TRPCReactProvider } from "./TrpcProvider";
+import { AntdProvider } from "./AntdProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,7 +38,9 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TRPCReactProvider>
-          {children}
+          <AntdProvider>
+            {children}
+          </AntdProvider>
         </TRPCReactProvider>
       </body>
     </html>

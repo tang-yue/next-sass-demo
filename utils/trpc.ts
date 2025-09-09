@@ -20,18 +20,11 @@ const loginRequiredMiddleware = t.middleware(async ({ ctx, next }) => {
   }
   return next({ ctx });
 });
-export const appRouter = router({
-  hello: publicProcedure.query(async ({ ctx }) => {
-    console.log(ctx.session, "ctx.session")
-    return {
-      message: "Hello, world!",
-    }
-  }),
-});
-
-export type AppRouter = typeof appRouter;
+// 导出类型，实际的路由定义在 server/router.ts
+export type AppRouter = import("../server/router").AppRouter;
 
 // 创建一个服务端组件的调用者，用于在服务端组件中调用 tRPC 路由
+import { appRouter } from "../server/router";
 export const caller = appRouter.createCaller(
   async () => ({
     session: await getServerSession(),
