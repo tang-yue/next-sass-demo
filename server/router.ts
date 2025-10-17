@@ -1,4 +1,5 @@
 import { fileRoutes } from "./routes/file";
+import { appRouter as appRoutes } from "./routes/app";
 import { router, protectedProcedure, publicProcedure } from "./trpc";
 
 export const appRouter = router({
@@ -9,6 +10,7 @@ export const appRouter = router({
         }
     }),
     file: fileRoutes,
+    app: appRoutes,
 });
 
 export type AppRouter = typeof appRouter;

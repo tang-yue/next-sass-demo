@@ -1,232 +1,113 @@
 "use client";
-import { Uppy } from '@uppy/core';
-import AWSS3 from '@uppy/aws-s3';
-import { useEffect, useState } from 'react';
-import { useUppyState } from './useUppyState';
-import { Upload, Button, Card, Image, Spin, App } from 'antd';
-import { InboxOutlined, FileOutlined } from '@ant-design/icons';
-import { trpcClient } from '@/utils/api';
-import type { UploadFile, UploadProps } from 'antd';
-import styles from './page.module.css';
-import { useQuery } from '@tanstack/react-query';
-import { DeleteFileDialog } from '@/app/uppyUpload/components/DeleteFileDialog';
-import { CopyFileUrl } from '@/app/uppyUpload/components/CopyFileUrl';
 
-export default function UppyUpload() {
-  const { message } = App.useApp();
-  const [uppy, setUppy] = useState(() => {
-    const uppy = new Uppy();
-    uppy.use(AWSS3, {
-      shouldUseMultipart: false,
-      getUploadParameters(file) {
-        return trpcClient.file.createPresignedUrl.mutate({
-          filename: file.name || "",
-          contentType: file.type || "",
-          size: file.size || 0,
-        });
-      },
-    });
-    return uppy;
-  });
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FolderOpen, Plus, Upload } from "lucide-react";
 
-  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+export default function UppyUploadPage() {
+  const router = useRouter();
 
-  // 获取已上传的文件列表
-  const { data: filesData, refetch } = useQuery({
-    queryKey: ['files'],
-    queryFn: () => trpcClient.file.getFiles.query({
-      page: 1,
-      limit: 50,
-    }),
-  });
-
-  useEffect(() => {
-    const handler = (file: any, resp: { uploadURL?: string }) => {
-      if (file) {
-        trpcClient.file.saveFile.mutate({
-          name: file.data instanceof File ? file.data.name : "test",
-          path: resp.uploadURL ?? "",
-          type: file.data.type,
-        }).then(() => {
-          message.success('文件上传成功！');
-          refetch(); // 重新获取文件列表
-        }).catch(() => {
-          message.error('文件保存失败！');
-        });
-      }
-    };
-    uppy.on("upload-success", handler);
-
-    return () => {
-      uppy.off("upload-success", handler);
-    };
-  }, [uppy, refetch]);
-
-  const files = useUppyState(uppy, (s) => Object.values(s.files));
-  const progress = useUppyState(uppy, (s) => s.totalProgress);
-
-  // 自定义上传处理
-  const customRequest: UploadProps['customRequest'] = async ({ file, onSuccess, onError }) => {
-    try {
-      setLoading(true);
-      const fileObj = file as File;
-      
-      // 添加到 Uppy
-      uppy.addFile({
-        data: fileObj,
-        name: fileObj.name,
-      });
-      
-      // 开始上传
-      await uppy.upload();
-      
-      onSuccess?.('ok');
-    } catch (error) {
-      onError?.(error as Error);
-      message.error('上传失败！');
-    } finally {
-      setLoading(false);
-    }
+  const handleGoToApps = () => {
+    router.push("/uppyUpload/apps");
   };
 
-  // 判断是否为图片
-  const isImage = (contentType: string) => {
-    return contentType.startsWith('image/');
+  const handleGoToNewApp = () => {
+    router.push("/uppyUpload/apps/new");
   };
-
-  // 删除文件
-  const handleDeleteFile = async (fileId: string) => {
-    try {
-      await trpcClient.file.deleteFile.mutate({ fileId });
-      message.success('文件删除成功！');
-      refetch(); // 重新获取文件列表
-    } catch (error) {
-      console.error('删除文件失败:', error);
-      message.error('删除文件失败！');
-    }
-  };
-
-
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">文件上传管理</h1>
-        
-        {/* 上传区域 */}
-        <Card className="mb-8">
-          <Upload.Dragger
-            name="file"
-            multiple
-            customRequest={customRequest}
-            showUploadList={false}
-            pastable={true}
-            accept="image/*,.pdf,.doc,.docx,.txt"
-            className={styles.uploadDragger}
-          >
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined className="text-4xl text-blue-500" />
-            </p>
-            <p className="ant-upload-text text-lg font-medium">
-              点击或拖拽文件到此区域上传
-            </p>
-            <p className="ant-upload-hint text-gray-500">
-              支持单个或批量上传。支持图片、PDF、Word文档等格式
-            </p>
-          </Upload.Dragger>
-          
-          {progress > 0 && progress < 100 && (
-            <div className="mt-4">
-              <div className="text-center text-sm text-gray-600 mb-2">
-                上传进度: {Math.round(progress)}%
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">文件管理系统</h1>
+          <p className="text-xl text-gray-600">管理您的应用和文件</p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* 应用管理卡片 */}
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleGoToApps}>
+            <CardHeader className="text-center">
+              <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <FolderOpen className="h-6 w-6 text-blue-600" />
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className={`h-2 rounded-full transition-all duration-300 ${styles.progressBar}`}
-                  style={{ width: `${progress}%` }}
-                ></div>
+              <CardTitle>应用管理</CardTitle>
+              <CardDescription>
+                查看和管理您的所有应用
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full">
+                进入应用管理
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* 创建新应用卡片 */}
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleGoToNewApp}>
+            <CardHeader className="text-center">
+              <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <Plus className="h-6 w-6 text-green-600" />
               </div>
-            </div>
-          )}
+              <CardTitle>创建新应用</CardTitle>
+              <CardDescription>
+                创建一个新的应用来管理文件
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full">
+                创建新应用
+              </Button>
+            </CardContent>
         </Card>
 
-        {/* 文件预览区域 */}
-        <Card>
-          <h2 className="text-xl font-semibold mb-4">已上传文件</h2>
-          {loading ? (
-            <div className="text-center py-8">
-              <Spin size="large" />
+          {/* 文件上传卡片 */}
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                <Upload className="h-6 w-6 text-purple-600" />
             </div>
-          ) : (
-            <div className={styles.masonryContainer}>
-              {filesData?.files?.map((file: any) => (
-                <div key={file.id} className={styles.masonryItem}>
-                  <Card 
-                    size="small" 
-                    className={styles.fileCard}
-                    cover={
-                      isImage(file.contentType) ? (
-                        <Image
-                          src={file.url}
-                          alt={file.name}
-                          width={100}
-                          height={100}
-                          className="object-cover"
-                          placeholder={
-                            <div className="w-full h-24 bg-gray-200 flex items-center justify-center">
-                              <Spin />
+              <CardTitle>文件上传</CardTitle>
+              <CardDescription>
+                直接上传文件到系统
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" variant="outline">
+                上传文件
+              </Button>
+            </CardContent>
+          </Card>
                             </div>
-                          }
-                        />
-                      ) : (
-                        <div className={`w-full h-24 ${styles.filePlaceholder}`}>
-                          <FileOutlined className="text-2xl text-gray-400 mb-1" />
-                          <span className="text-xs text-gray-500 truncate px-2">
-                            {file.name}
-                          </span>
-                        </div>
-                      )
-                    }
-                    actions={[
-                      <CopyFileUrl 
-                        key="copy"
-                        fileUrl={file.url}
-                        fileName={file.name}
-                      />,
-                      <DeleteFileDialog
-                        key="delete"
-                        fileId={file.id}
-                        fileName={file.name}
-                        onDelete={handleDeleteFile}
-                      />
-                    ]}
-                  >
-                    <Card.Meta
-                      title={
-                        <span className="text-sm font-medium truncate block" title={file.name}>
-                          {file.name}
-                        </span>
-                      }
-                      description={
-                        <div className="text-xs text-gray-500">
-                          <div>{file.contentType}</div>
-                          <div>{new Date(file.createdAt).toLocaleDateString()}</div>
-                        </div>
-                      }
-                    />
-                  </Card>
+
+        {/* 功能说明 */}
+        <div className="mt-12">
+          <Card>
+            <CardHeader>
+              <CardTitle>系统功能说明</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">应用管理</h3>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• 创建和管理多个应用</li>
+                    <li>• 每个应用独立管理文件</li>
+                    <li>• 应用间快速切换</li>
+                  </ul>
                 </div>
-              ))}
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">文件管理</h3>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• 支持多种文件类型</li>
+                    <li>• 文件预览和下载</li>
+                    <li>• 文件分类管理</li>
+                  </ul>
             </div>
-          )}
-          
-          {filesData?.files?.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              暂无上传文件
             </div>
-          )}
+            </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

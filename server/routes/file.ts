@@ -70,6 +70,52 @@ export const fileRoutes = router({
       };
     }),
 
+  // 根据应用ID获取文件列表
+  getFilesByAppId: protectedProcedure
+    .input(
+      z.object({
+        appId: z.string(),
+        page: z.number().default(1),
+        limit: z.number().default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { session } = ctx;
+      const offset = (input.page - 1) * input.limit;
+
+      const filesList = await db
+        .select()
+        .from(files)
+        .where(
+          and(
+            eq(files.userId, (session?.user as { id: string })?.id || ""),
+            eq(files.appId, input.appId),
+            isNull(files.deletedAt)
+          )
+        )
+        .orderBy(desc(files.createdAt))
+        .limit(input.limit)
+        .offset(offset);
+
+      const totalCount = await db
+        .select({ count: count() })
+        .from(files)
+        .where(
+          and(
+            eq(files.userId, (session?.user as { id: string })?.id || ""),
+            eq(files.appId, input.appId),
+            isNull(files.deletedAt)
+          )
+        );
+
+      return {
+        files: filesList,
+        total: totalCount[0]?.count || 0,
+        page: input.page,
+        limit: input.limit,
+      };
+    }),
+
   createPresignedUrl: protectedProcedure
     .input(
         z.object({
@@ -117,6 +163,7 @@ export const fileRoutes = router({
         name: z.string(),
         path: z.string(),
         type: z.string(),
+        appId: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -133,6 +180,7 @@ export const fileRoutes = router({
         url: url.toString(),
         userId: (session?.user as { id: string })?.id || "",
         contentType: input.type,
+        appId: input.appId,
       }).returning();
 
       return photo[0];

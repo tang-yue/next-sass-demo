@@ -135,7 +135,6 @@ export const apps = pgTable("apps", {
   deletedAt: timestamp("deleted_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
   userId: text("user_id").notNull(),
-  // storageId: integer("storage_id"),
 });
 
 export const appRelations = relations(apps, ({ one, many }) => ({
