@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Upload, X, CheckCircle, AlertCircle } from "lucide-react";
+import { Upload, X, CheckCircle, AlertCircle, Settings } from "lucide-react";
 
 interface FileUploadProps {
   appId: string;
@@ -27,8 +27,20 @@ export default function FileUpload({ appId, onUploadComplete }: FileUploadProps)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
+  // 获取应用信息和存储配置
+  const { data: appData } = useQuery({
+    queryKey: ['apps', 'getById', appId],
+    queryFn: () => trpcClient.app.getById.query({ id: appId }),
+  });
+
+  const { data: storageData } = useQuery({
+    queryKey: ['storage', 'getById', appData?.app?.storageId],
+    queryFn: () => trpcClient.storage.getById.query({ id: appData?.app?.storageId! }),
+    enabled: !!appData?.app?.storageId
+  });
+
   const createPresignedUrlMutation = useMutation({
-    mutationFn: (data: { filename: string; contentType: string; size: number }) =>
+    mutationFn: (data: { filename: string; contentType: string; size: number; storageId?: number }) =>
       trpcClient.file.createPresignedUrl.mutate(data),
   });
 
@@ -69,6 +81,7 @@ export default function FileUpload({ appId, onUploadComplete }: FileUploadProps)
         filename: uploadFile.file.name,
         contentType: uploadFile.file.type,
         size: uploadFile.file.size,
+        storageId: appData?.app?.storageId || undefined,
       });
 
       // 2. 上传到S3
@@ -149,6 +162,43 @@ export default function FileUpload({ appId, onUploadComplete }: FileUploadProps)
     fileInputRef.current?.click();
   };
 
+  // 检查存储配置
+  if (!appData?.app?.storageId) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              需要配置存储
+            </CardTitle>
+            <CardDescription>
+              请先配置存储服务才能上传文件
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                未配置存储服务
+              </h3>
+              <p className="text-gray-600 mb-4">
+                请先在应用设置中配置存储服务，然后才能上传文件
+              </p>
+              <Button
+                onClick={() => window.location.href = `/uppyUpload/apps/${appId}/storage`}
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                配置存储
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* 上传区域 */}
@@ -160,6 +210,11 @@ export default function FileUpload({ appId, onUploadComplete }: FileUploadProps)
           </CardTitle>
           <CardDescription>
             拖拽文件到此处或点击选择文件
+            {storageData?.storage && (
+              <span className="ml-2 text-blue-600">
+                (存储: {storageData.storage.name})
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>

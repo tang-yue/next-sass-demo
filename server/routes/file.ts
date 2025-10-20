@@ -9,7 +9,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { db } from "../db/db";
-import { files } from "../db/schema";
+import { files, storageConfiguration } from "../db/schema";
 import { v4 as uuidv4 } from "uuid";
 import { eq, desc, count, and, isNull } from "drizzle-orm";
 
@@ -19,11 +19,6 @@ const region = process.env.COS_REGION;
 const apiEndpoint = process.env.COS_API_ENDPOINT;
 const cosAppId = process.env.COS_APP_ID;
 const cosAppSecret = process.env.COS_APP_SECRET;
-
-// 验证必要的环境变量
-if (!bucket || !region || !apiEndpoint || !cosAppId || !cosAppSecret) {
-  throw new Error("Missing required environment variables for S3/COS configuration");
-}
 
 
 export const fileRoutes = router({
@@ -122,28 +117,72 @@ export const fileRoutes = router({
             filename: z.string(),
             contentType: z.string(),
             size: z.number(),
+            storageId: z.number().optional(),
         })
     )
     .mutation(async ({ ctx, input }) => {
+      const { session } = ctx;
+      const userId = (session?.user as any)?.id;
+
+      let storageConfig;
+      
+      if (input.storageId) {
+        // 使用指定的存储配置
+        const storage = await db
+          .select()
+          .from(storageConfiguration)
+          .where(
+            and(
+              eq(storageConfiguration.id, input.storageId),
+              eq(storageConfiguration.userId, userId),
+              isNull(storageConfiguration.deletedAt)
+            )
+          )
+          .limit(1);
+
+        if (!storage[0]) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "存储配置不存在或无权限访问",
+          });
+        }
+        
+        storageConfig = storage[0].configuration;
+      } else {
+        // 使用环境变量作为默认配置
+        if (!bucket || !region || !apiEndpoint || !cosAppId || !cosAppSecret) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "未配置存储服务，请先在应用设置中配置存储",
+          });
+        }
+        
+        storageConfig = {
+          bucket,
+          region,
+          accessKeyId: cosAppId,
+          secretAccessKey: cosAppSecret,
+          apiEndpoint,
+        };
+      }
+
       const date = new Date();
-
       const isoString = date.toISOString();
-
       const dateString = isoString.split("T")[0];
 
       const params: PutObjectCommandInput = {
-        Bucket: bucket,
+        Bucket: storageConfig.bucket,
         Key: `${dateString}/${input.filename.replaceAll(" ", "_")}`,
         ContentType: input.contentType,
         ContentLength: input.size,
       };
 
       const s3Client = new S3Client({
-        endpoint: apiEndpoint,
-        region: region,
+        endpoint: storageConfig.apiEndpoint,
+        region: storageConfig.region,
         credentials: {
-          accessKeyId: cosAppId,
-          secretAccessKey: cosAppSecret,
+          accessKeyId: storageConfig.accessKeyId,
+          secretAccessKey: storageConfig.secretAccessKey,
         },
       });
 
@@ -168,7 +207,14 @@ export const fileRoutes = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { session } = ctx;
-
+      const app = await db.query.apps.findFirst({
+        where: (apps, {eq}) => eq(apps.id, input.appId)
+      })
+      if (app?.userId !== ((session?.user as {id: string})?.id)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN'
+        })
+      }
       const url = new URL(input.path);
 
       const photo = await db

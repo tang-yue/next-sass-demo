@@ -5,13 +5,15 @@ import {
   text,
   primaryKey,
   integer,
+  serial
 } from "drizzle-orm/pg-core"
 // import postgres from "postgres"
 import { drizzle } from "drizzle-orm/postgres-js"
 import { AdapterAccount } from "next-auth/adapters"
 import { uuid } from "drizzle-orm/pg-core"
-import { varchar } from "drizzle-orm/pg-core"
+import { varchar, json } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
+
 
 // const connectionString = "postgres://postgres:postgres@localhost:5432/drizzle"
 // const pool = postgres(connectionString, { max: 1 })
@@ -32,6 +34,7 @@ export const users = pgTable("user", {
 export const userRelations = relations(users, ({ many }) => ({
   files: many(files),
   apps: many(apps),
+  storageConfiguration: many(storageConfiguration)
 }));
 
 export const accounts = pgTable(
@@ -135,11 +138,42 @@ export const apps = pgTable("apps", {
   deletedAt: timestamp("deleted_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
   userId: text("user_id").notNull(),
+  storageId: integer("storage_id"),
 });
 
 export const appRelations = relations(apps, ({ one, many }) => ({
   files: many(files),
   user: one(users, { fields: [apps.userId], references: [users.id] }),
+  storage: one(storageConfiguration, {
+    fields: [apps.storageId],
+    references: [storageConfiguration.id]
+  })
+}));
+
+export type S3StorageConfiguration = {
+  bucket: string;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  apiEndpoint?: string;
+};
+
+export type StorageConfiguration = S3StorageConfiguration;
+
+export const storageConfiguration = pgTable("storageConfiguration", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  userId: uuid("user_id").notNull(),
+  configuration: json("configuration")
+      .$type<S3StorageConfiguration>()
+      .notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  deletedAt: timestamp("deleted_at", { mode: "date" }),
+});
+
+export const storageConfigurationRelation = relations(apps, ({ one, many }) => ({
+  files: many(files),
+  user: one(users, { fields: [apps.userId], references: [users.id] })
 }));
 
 
@@ -150,5 +184,7 @@ const schemas = {
   verificationTokens,
   authenticators,
   files,
+  apps,
+  storageConfiguration,
 };
 export default schemas;

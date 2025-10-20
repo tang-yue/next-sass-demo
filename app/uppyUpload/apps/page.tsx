@@ -5,17 +5,51 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/api";
-import { Plus, FolderOpen } from "lucide-react";
+import { Plus, FolderOpen, Trash2, AlertTriangle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function AppsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [selectedAppId, setSelectedAppId] = useState<string>("");
+  const [deletingAppId, setDeletingAppId] = useState<string | null>(null);
 
   const { data: appsData, isLoading, error } = useQuery({
     queryKey: ['apps', 'getAll'],
     queryFn: () => trpcClient.app.getAll.query(),
+  });
+
+  // 删除应用mutation
+  const deleteAppMutation = useMutation({
+    mutationFn: (appId: string) => trpcClient.app.delete.mutate({ id: appId }),
+    onSuccess: () => {
+      // 刷新应用列表
+      queryClient.invalidateQueries({ queryKey: ['apps', 'getAll'] });
+      setDeletingAppId(null);
+    },
+    onError: (error: any) => {
+      console.error('删除应用失败:', error);
+      alert(error.message || '删除应用失败');
+    },
+  });
+
+  // 获取应用文件数量
+  const { data: filesCountData } = useQuery({
+    queryKey: ['apps', 'getFilesCount', deletingAppId],
+    queryFn: () => trpcClient.app.getFilesCount.query({ id: deletingAppId! }),
+    enabled: !!deletingAppId,
   });
 
   const handleAppSelect = (appId: string) => {
@@ -28,6 +62,18 @@ export default function AppsPage() {
   const handleCreateNew = () => {
     router.push("/uppyUpload/apps/new");
   };
+
+  const handleDeleteApp = (appId: string) => {
+    setDeletingAppId(appId);
+  };
+
+  const confirmDeleteApp = () => {
+    if (deletingAppId) {
+      deleteAppMutation.mutate(deletingAppId);
+    }
+  };
+
+  const filesCount = filesCountData?.count || 0;
 
   if (isLoading) {
     return (
@@ -82,9 +128,7 @@ export default function AppsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {apps.length === 0 ? (
-                    <SelectItem value="" disabled>
-                      暂无应用
-                    </SelectItem>
+                    ''
                   ) : (
                     apps.map((app) => (
                       <SelectItem key={app.id} value={app.id}>
@@ -139,22 +183,81 @@ export default function AppsPage() {
               {apps.map((app) => (
                 <Card
                   key={app.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleAppSelect(app.id)}
+                  className="hover:shadow-md transition-shadow relative group"
                 >
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">{app.name}</CardTitle>
-                    {app.description && (
-                      <CardDescription className="text-sm">
-                        {app.description}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-xs text-gray-500">
-                      创建时间: {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : ''}
-                    </p>
-                  </CardContent>
+                  <div onClick={() => handleAppSelect(app.id)} className="cursor-pointer">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">{app.name}</CardTitle>
+                      {app.description && (
+                        <CardDescription className="text-sm">
+                          {app.description}
+                        </CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <p className="text-xs text-gray-500">
+                        创建时间: {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : ''}
+                      </p>
+                    </CardContent>
+                  </div>
+                  
+                  {/* 删除按钮 */}
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteApp(app.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5 text-red-600" />
+                            确认删除应用
+                          </AlertDialogTitle>
+                          <AlertDialogDescription asChild>
+                            {filesCount > 0 ? (
+                              <div className="space-y-2">
+                                <p className="text-red-600 font-medium">
+                                  无法删除此应用！
+                                </p>
+                                <p>
+                                  该应用下还有 <strong>{filesCount}</strong> 个文件。
+                                  请先删除应用下的所有文件，然后再删除应用。
+                                </p>
+                              </div>
+                            ) : (
+                              <div>
+                                确定要删除应用 <strong>"{app.name}"</strong> 吗？
+                                <br />
+                                此操作无法撤销。
+                              </div>
+                            )}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>取消</AlertDialogCancel>
+                          {filesCount === 0 && (
+                            <AlertDialogAction
+                              onClick={confirmDeleteApp}
+                              className="bg-red-600 hover:bg-red-700"
+                              disabled={deleteAppMutation.isPending}
+                            >
+                              {deleteAppMutation.isPending ? "删除中..." : "确认删除"}
+                            </AlertDialogAction>
+                          )}
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </Card>
               ))}
             </div>

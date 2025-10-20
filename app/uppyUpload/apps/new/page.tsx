@@ -80,6 +80,7 @@ export default function NewAppPage() {
                         <Input
                           placeholder="请输入应用名称"
                           {...field}
+                          maxLength={100}
                         />
                       </FormControl>
                       <FormMessage />
@@ -98,6 +99,7 @@ export default function NewAppPage() {
                           placeholder="请输入应用描述（可选）"
                           className="min-h-[100px]"
                           {...field}
+                          maxLength={500}
                         />
                       </FormControl>
                       <FormMessage />

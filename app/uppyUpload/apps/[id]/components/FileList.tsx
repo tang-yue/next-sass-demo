@@ -149,81 +149,83 @@ export default function FileList({ appId }: FileListProps) {
       </div>
 
       {/* 文件列表 */}
-      {files.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              暂无文件
-            </h3>
-            <p className="text-gray-600">
-              还没有上传任何文件到该应用
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {files.map((file: any) => (
-            <Card key={file.id} className="hover:shadow-md transition-shadow py-2">
-              <CardContent className="p-4 py-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-gray-500">
-                      {getFileIcon(file.contentType)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {file.name}
-                      </p>
-                      <div className="flex items-center space-x-4 text-xs text-gray-500">
-                        <span>{file.contentType}</span>
-                        <span>
-                          {file.createdAt ? formatDistanceToNow(new Date(file.createdAt), { 
-                            addSuffix: true, 
-                            locale: zhCN 
-                          }) : '未知时间'}
-                        </span>
+      <div className="h-75 overflow-y-auto border rounded-lg">
+        {files.length === 0 ? (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                暂无文件
+              </h3>
+              <p className="text-gray-600">
+                还没有上传任何文件到该应用
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="p-3 space-y-3">
+            {files.map((file: any) => (
+              <Card key={file.id} className="hover:shadow-md transition-shadow py-2">
+                <CardContent className="p-4 py-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-gray-500">
+                        {getFileIcon(file.contentType)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {file.name}
+                        </p>
+                        <div className="flex items-center space-x-4 text-xs text-gray-500">
+                          <span>{file.contentType}</span>
+                          <span>
+                            {file.createdAt ? formatDistanceToNow(new Date(file.createdAt), { 
+                              addSuffix: true, 
+                              locale: zhCN 
+                            }) : '未知时间'}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDownload(file.url, file.name)}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    {isImageFile(file.contentType) && (
+                    <div className="flex items-center space-x-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleCopyLink(file.url, file.id)}
-                        className={copiedFileId === file.id ? "text-green-600" : "text-blue-600 hover:text-blue-700"}
-                        title="复制图片链接"
+                        onClick={() => handleDownload(file.url, file.name)}
                       >
-                        {copiedFileId === file.id ? (
-                          <Check className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
+                        <Download className="h-4 w-4" />
                       </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(file.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      {isImageFile(file.contentType) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCopyLink(file.url, file.id)}
+                          className={copiedFileId === file.id ? "text-green-600" : "text-blue-600 hover:text-blue-700"}
+                          title="复制图片链接"
+                        >
+                          {copiedFileId === file.id ? (
+                            <Check className="h-4 w-4" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(file.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* 分页 */}
       {totalPages > 1 && (

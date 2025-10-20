@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/api";
-import { ArrowLeft, Plus, FolderOpen, Upload } from "lucide-react";
+import { ArrowLeft, Plus, FolderOpen, Upload, Settings } from "lucide-react";
 import FileList from "./components/FileList";
 import FileUpload from "./components/FileUpload";
 
@@ -28,11 +28,21 @@ export default function AppDetailPage({ params }: PageProps) {
   const { data: appsData, isLoading: appsLoading } = useQuery({
     queryKey: ['apps', 'getAll'],
     queryFn: () => trpcClient.app.getAll.query(),
+    staleTime: 0, // 确保数据不会被认为是"新鲜的"
+    refetchOnMount: true, // 组件挂载时重新获取数据
+    refetchOnWindowFocus: true, // 窗口获得焦点时重新获取数据
   });
   const { data: appData, isLoading: appLoading, error: appError } = useQuery({
     queryKey: ['apps', 'getById', resolvedParams.id],
     queryFn: () => trpcClient.app.getById.query({ id: resolvedParams.id }),
     enabled: !!resolvedParams.id
+  });
+
+  // 获取存储配置信息
+  const { data: storageData } = useQuery({
+    queryKey: ['storage', 'getById', appData?.app?.storageId],
+    queryFn: () => trpcClient.storage.getById.query({ id: appData?.app?.storageId! }),
+    enabled: !!appData?.app?.storageId
   });
 
   const handleAppSelect = (appId: string) => {
@@ -48,6 +58,10 @@ export default function AppDetailPage({ params }: PageProps) {
 
   const handleBackToApps = () => {
     router.push("/uppyUpload/apps");
+  };
+
+  const handleStorageConfig = () => {
+    router.push(`/uppyUpload/apps/${resolvedParams.id}/storage`);
   };
 
   const handleUploadComplete = () => {
@@ -87,6 +101,7 @@ export default function AppDetailPage({ params }: PageProps) {
 
   const apps = appsData?.apps || [];
   const currentApp = appData?.app;
+  const currentStorage = storageData?.storage;
 
   return (
     <div className="bg-gray-50">
@@ -117,11 +132,13 @@ export default function AppDetailPage({ params }: PageProps) {
                   <SelectValue placeholder="切换应用" />
                 </SelectTrigger>
                 <SelectContent>
-                  {apps.map((app) => (
-                    <SelectItem key={app.id} value={app.id}>
-                      {app.name}
-                    </SelectItem>
-                  ))}
+                  {apps
+                    .filter((app) => app.id && app.id.trim() !== '') // 过滤掉空值或空字符串
+                    .map((app) => (
+                      <SelectItem key={app.id} value={app.id}>
+                        {app.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
 
@@ -146,12 +163,33 @@ export default function AppDetailPage({ params }: PageProps) {
                   {currentApp.name}
                 </CardTitle>
                 {currentApp.description && (
-                  <>
+                  <div className="text-sm text-gray-600 flex flex-row gap-2">
                     <CardDescription>描述：{currentApp.description}</CardDescription>
                     <CardDescription>应用id：{currentApp.id}</CardDescription>
-                  </>
+                  </div>
                 )}
               </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">存储配置：</span>
+                      <span className="text-sm text-gray-600 ml-2">
+                        {currentStorage ? currentStorage.name : "未配置"}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleStorageConfig}
+                    className="flex items-center gap-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    {currentStorage ? "更换配置" : "配置存储"}
+                  </Button>
+                </div>
+              </CardContent>
             </Card>
 
             {/* 文件管理区域 */}

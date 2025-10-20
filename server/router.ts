@@ -1,5 +1,6 @@
 import { fileRoutes } from "./routes/file";
 import { appRouter as appRoutes } from "./routes/app";
+import { storageRouter as storageRoutes } from "./routes/storage";
 import { router, protectedProcedure, publicProcedure } from "./trpc";
 
 export const appRouter = router({
@@ -11,6 +12,7 @@ export const appRouter = router({
     }),
     file: fileRoutes,
     app: appRoutes,
+    storage: storageRoutes,
 });
 
 export type AppRouter = typeof appRouter;
