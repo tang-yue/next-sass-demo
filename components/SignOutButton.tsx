@@ -13,7 +13,7 @@ export function SignOutButton() {
             className="flex items-center space-x-2"
         >
             <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sign Out</span>
+            <span className="hidden sm:inline">退出登录</span>
         </Button>
     );
 }

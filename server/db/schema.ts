@@ -176,6 +176,21 @@ export const storageConfigurationRelation = relations(apps, ({ one, many }) => (
   user: one(users, { fields: [apps.userId], references: [users.id] })
 }));
 
+export const apiKeys = pgTable("apiKeys", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  key: varchar("key", { length: 100 }).notNull(),
+  appId: uuid("appId").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+  deletedAt: timestamp("deleted_at", { mode: "date" }),
+});
+
+export const apiKeysRelation = relations(apiKeys, ({ one }) => ({
+  app: one(apps, {
+      fields: [apiKeys.appId],
+      references: [apps.id],
+  }),
+}));
 
 const schemas = {
   users,

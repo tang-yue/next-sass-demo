@@ -158,10 +158,19 @@ export default function AppDetailPage({ params }: PageProps) {
             {/* 应用信息卡片 */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FolderOpen className="h-5 w-5" />
-                  {currentApp.name}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <FolderOpen className="h-5 w-5" />
+                    {currentApp.name}
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push(`/uppyUpload/apps/${resolvedParams.id}/api-key`)}
+                  >
+                    查看 API Keys
+                  </Button>
+                </div>
                 {currentApp.description && (
                   <div className="text-sm text-gray-600 flex flex-row gap-2">
                     <CardDescription>描述：{currentApp.description}</CardDescription>

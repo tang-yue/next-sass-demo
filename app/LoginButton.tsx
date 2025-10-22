@@ -22,7 +22,7 @@ export function LoginButton() {
           onClick={() => signOut()}
           variant="outline"
         >
-          Sign out
+          退出登录
         </Button>
       </div>
     )
