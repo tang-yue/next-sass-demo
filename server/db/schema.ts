@@ -180,6 +180,7 @@ export const apiKeys = pgTable("apiKeys", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   key: varchar("key", { length: 100 }).notNull(),
+  clientId: varchar("clientId", { length: 100 }).notNull(),
   appId: uuid("appId").notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
   deletedAt: timestamp("deleted_at", { mode: "date" }),

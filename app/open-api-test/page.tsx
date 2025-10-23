@@ -22,7 +22,7 @@ export default function OpenApiTestComponent() {
 
     // 模拟API调用 - 在实际使用中，第三方应用需要设置请求头
     const makeApiCall = async (endpoint: string, method: string = "GET", body?: any) => {
-        let url = `/api/trpc/${endpoint}`;
+        let url = `/api/open/${endpoint}`;
         const options: RequestInit = {
             method,
             headers: {

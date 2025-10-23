@@ -49,10 +49,11 @@ export const apiKeysRouter = router({
       }
 
       const key = randomBytes(32).toString("hex");
+      const clientId = randomBytes(16).toString("hex");
 
       const created = await db
         .insert(apiKeys)
-        .values({ name: input.name, key, appId: input.appId })
+        .values({ name: input.name, key, appId: input.appId, clientId })
         .returning();
 
       return { success: true, apiKey: created[0] };

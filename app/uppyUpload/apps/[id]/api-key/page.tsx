@@ -1,9 +1,9 @@
 "use client";
 
 import { use, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { trpcClient } from "@/utils/api";
+import { trpcClientReact } from "@/utils/api";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,23 +20,23 @@ export default function ApiKeysPage({ params }: PageProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['apiKeys', 'getByAppId', resolvedParams.id],
-    queryFn: () => trpcClient.apiKeys.getByAppId.query({ appId: resolvedParams.id }),
+  // 使用 TRPC React Query hooks
+  const { data, isLoading, error, refetch } = trpcClientReact.apiKeys.getByAppId.useQuery({ 
+    appId: resolvedParams.id 
   });
 
-  const createMutation = useMutation({
-    mutationFn: (payload: { appId: string; name: string }) => trpcClient.apiKeys.create.mutate(payload),
-    onSuccess: () => {
+  const createMutation = trpcClientReact.apiKeys.create.useMutation({
+    onSuccess: async () => {
       setName("");
-      queryClient.invalidateQueries({ queryKey: ['apiKeys', 'getByAppId', resolvedParams.id] });
+      // 使用 refetch 方法刷新数据
+      await refetch();
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => trpcClient.apiKeys.delete.mutate({ id }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['apiKeys', 'getByAppId', resolvedParams.id] });
+  const deleteMutation = trpcClientReact.apiKeys.delete.useMutation({
+    onSuccess: async () => {
+      // 使用 refetch 方法刷新数据
+      await refetch();
     },
   });
 
@@ -107,10 +107,17 @@ export default function ApiKeysPage({ params }: PageProps) {
                   <div key={k.id} className="flex items-center justify-between border rounded-lg p-3">
                     <div>
                       <div className="text-sm font-medium">{k.name}</div>
-                      <div className="text-xs text-gray-500 break-all">{k.key}</div>
+                      <div className="text-xs text-gray-500 break-all">api-key: {k.key}</div>
+                      <div className="text-xs text-gray-500 break-all">clientId: {k.clientId}</div>
                       <div className="text-xs text-gray-400 mt-1">创建时间：{k.createdAt ? new Date(k.createdAt).toLocaleString() : ''}</div>
                     </div>
-                    <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" onClick={() => deleteMutation.mutate(k.id)}>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-red-600 hover:text-red-700" 
+                      onClick={() => deleteMutation.mutate({ id: k.id })}
+                      disabled={deleteMutation.isPending}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

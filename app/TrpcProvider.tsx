@@ -4,7 +4,7 @@ import { createTRPCClient, httpBatchLink } from '@trpc/client';
 import { cache, useState } from 'react';
 import { AppRouter } from '../utils/trpc';
 import { appRouter } from '../server/router';
-import { trpcClient } from '../utils/api';
+import { trpcClient, trpcClientReact } from '../utils/api';
 import { createTRPCContext } from '@trpc/tanstack-react-query';
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
 import { getServerSession } from '@/server/auth';
@@ -67,10 +67,10 @@ export function TRPCReactProvider(
   const queryClient = getQueryClient();
   const [_trpcClient] = useState(() => trpcClient);
   return (
-    <QueryClientProvider client={queryClient}>
-      <TRPCProvider trpcClient={_trpcClient} queryClient={queryClient}>
+    <trpcClientReact.Provider client={_trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
         {props.children}
-      </TRPCProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </trpcClientReact.Provider>
   );
 }

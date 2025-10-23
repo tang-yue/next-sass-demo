@@ -6,12 +6,6 @@ import { openFileRoutes } from "./routes/open-file";
 import { router, protectedProcedure, publicProcedure } from "./trpc";
 
 export const appRouter = router({
-    hello: publicProcedure.query(async ({ ctx }) => {
-        console.log(ctx.session, "ctx.session")
-        return {
-            message: "Hello, world!",
-        }
-    }),
     file: fileRoutes,
     app: appRoutes,
     storage: storageRoutes,

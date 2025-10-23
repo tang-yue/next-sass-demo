@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { trpcClient } from "@/utils/api";
+import { trpcClientReact } from "@/utils/api";
 import { Plus, FolderOpen, Trash2, AlertTriangle } from "lucide-react";
 import {
   AlertDialog,
@@ -22,22 +21,17 @@ import {
 
 export default function AppsPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [selectedAppId, setSelectedAppId] = useState<string>("");
   const [deletingAppId, setDeletingAppId] = useState<string | null>(null);
 
-  const { data: appsData, isLoading, error } = useQuery({
-    queryKey: ['apps', 'getAll'],
-    queryFn: () => trpcClient.app.getAll.query(),
-  });
+  // 使用 TRPC React Query hooks
+  const { data: appsData, isLoading, error, refetch } = trpcClientReact.app.getAll.useQuery();
 
   // 删除应用mutation
-  const deleteAppMutation = useMutation({
-    mutationFn: (appId: string) => trpcClient.app.delete.mutate({ id: appId }),
+  const deleteAppMutation = trpcClientReact.app.delete.useMutation({
     onSuccess: () => {
-      // 刷新应用列表
-      queryClient.invalidateQueries({ queryKey: ['apps', 'getAll'] });
       setDeletingAppId(null);
+      refetch();
     },
     onError: (error: any) => {
       console.error('删除应用失败:', error);
@@ -46,11 +40,10 @@ export default function AppsPage() {
   });
 
   // 获取应用文件数量
-  const { data: filesCountData } = useQuery({
-    queryKey: ['apps', 'getFilesCount', deletingAppId],
-    queryFn: () => trpcClient.app.getFilesCount.query({ id: deletingAppId! }),
-    enabled: !!deletingAppId,
-  });
+  const { data: filesCountData } = trpcClientReact.app.getFilesCount.useQuery(
+    { id: deletingAppId! },
+    { enabled: !!deletingAppId }
+  );
 
   const handleAppSelect = (appId: string) => {
     setSelectedAppId(appId);
@@ -69,7 +62,7 @@ export default function AppsPage() {
 
   const confirmDeleteApp = () => {
     if (deletingAppId) {
-      deleteAppMutation.mutate(deletingAppId);
+      deleteAppMutation.mutate({ id: deletingAppId });
     }
   };
 

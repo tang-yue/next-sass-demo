@@ -12,6 +12,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 // 创建独立的TRPC实例用于开放API
 const t = initTRPC.context<{
@@ -21,45 +22,108 @@ const t = initTRPC.context<{
 
 const { procedure } = t;
 
-// 基于API Key的中间件 - 用于开放API接口
+// 基于API Key或Signed Token的中间件 - 用于开放API接口
 export const withApiKeyMiddleware = t.middleware(async ({ next }) => {
-    const header = headers();
+    const header = await headers();
     const apiKey = header.get("api-key");
+    const signedToken = header.get("signed-token");
 
-    if (!apiKey) {
-        throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "API Key is required",
-        });
-    }
-
-    // 查询API Key并关联应用和用户信息
-    const apiKeyAndAppUser = await db.query.apiKeys.findFirst({
-        where: (apiKeys, { eq, and, isNull }) =>
-            and(eq(apiKeys.key, apiKey), isNull(apiKeys.deletedAt)),
-        with: {
-            app: {
-                with: {
-                    user: true,
-                    storage: true,
+    if (apiKey) {
+        // 传统的API Key认证方式
+        const apiKeyAndAppUser = await db.query.apiKeys.findFirst({
+            where: (apiKeys, { eq, and, isNull }) =>
+                and(eq(apiKeys.key, apiKey), isNull(apiKeys.deletedAt)),
+            with: {
+                app: {
+                    with: {
+                        user: true,
+                        storage: true,
+                    },
                 },
             },
-        },
-    });
+        });
 
-    if (!apiKeyAndAppUser) {
+        if (!apiKeyAndAppUser) {
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "Invalid API Key",
+            });
+        }
+
+        return next({
+            ctx: {
+                app: apiKeyAndAppUser.app,
+                user: apiKeyAndAppUser.app.user,
+            },
+        });
+    } else if (signedToken) {
+        // 基于JWT Token的认证方式
+        try {
+            // 解析JWT token获取clientId
+            const payload = jwt.decode(signedToken) as JwtPayload;
+            
+            if (!payload?.clientId) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "clientId not found in token",
+                });
+            }
+
+            // 根据clientId查询API Key
+            const apiKeyAndAppUser = await db.query.apiKeys.findFirst({
+                where: (apiKeys, { eq, and, isNull }) =>
+                    and(
+                        eq(apiKeys.clientId, payload.clientId),
+                        isNull(apiKeys.deletedAt)
+                    ),
+                with: {
+                    app: {
+                        with: {
+                            user: true,
+                            storage: true,
+                        },
+                    },
+                },
+            });
+
+            if (!apiKeyAndAppUser) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "Invalid clientId in token",
+                });
+            }
+
+            // 验证token签名
+            try {
+                jwt.verify(signedToken, apiKeyAndAppUser.key);
+            } catch (err) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "Invalid token signature",
+                });
+            }
+
+            return next({
+                ctx: {
+                    app: apiKeyAndAppUser.app,
+                    user: apiKeyAndAppUser.app.user,
+                },
+            });
+        } catch (error) {
+            if (error instanceof TRPCError) {
+                throw error;
+            }
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "Invalid signed token",
+            });
+        }
+    } else {
         throw new TRPCError({
             code: "UNAUTHORIZED",
-            message: "Invalid API Key",
+            message: "API Key or signed-token is required",
         });
     }
-
-    return next({
-        ctx: {
-            app: apiKeyAndAppUser.app,
-            user: apiKeyAndAppUser.app.user,
-        },
-    });
 });
 
 // 开放API的procedure - 使用API Key认证而非用户登录
