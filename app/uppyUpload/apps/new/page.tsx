@@ -10,8 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useMutation } from "@tanstack/react-query";
-import { trpcClient } from "@/utils/api";
+import { trpcClientReact } from "@/utils/api";
 
 const formSchema = z.object({
   name: z.string().min(1, "名称不能为空").max(100, "名称不能超过100个字符"),
@@ -32,11 +31,7 @@ export default function NewAppPage() {
     },
   });
 
-  const createAppMutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      const result = await trpcClient.app.create.mutate(data);
-      return result;
-    },
+  const createAppMutation = trpcClientReact.app.create.useMutation({
     onSuccess: (data: any) => {
       console.log("App created successfully:", data);
       router.push(`/uppyUpload/apps/${data.app.id}`);

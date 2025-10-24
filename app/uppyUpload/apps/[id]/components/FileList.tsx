@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { trpcClient } from "@/utils/api";
+import { trpcClientReact } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,26 +44,24 @@ const formatFileSize = (bytes: number) => {
 export default function FileList({ appId }: FileListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedFileId, setCopiedFileId] = useState<string | null>(null);
-  const queryClient = useQueryClient();
   const limit = 10;
 
   console.log('FileList component rendered, appId:', appId, 'currentPage:', currentPage);
 
-  const { data: filesData, isLoading, error } = useQuery({
-    queryKey: ['files', 'getFilesByAppId', appId, currentPage],
-    queryFn: () => trpcClient.file.getFilesByAppId.query({
-      appId,
-      page: currentPage,
-      limit
-    }),
-    staleTime: 0, // 确保数据不会被认为是"新鲜的"
-    refetchOnMount: true, // 组件挂载时重新获取数据
+  // 使用 TRPC React Query hooks
+  const { data: filesData, isLoading, error, refetch } = trpcClientReact.file.getFilesByAppId.useQuery({
+    appId,
+    page: currentPage,
+    limit
   });
 
-  const deleteFileMutation = useMutation({
-    mutationFn: (fileId: string) => trpcClient.file.deleteFile.mutate({ fileId }),
+  const deleteFileMutation = trpcClientReact.file.deleteFile.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['files', 'getFilesByAppId', appId] });
+      refetch();
+    },
+    onError: (error: any) => {
+      console.error('删除文件失败:', error);
+      alert(error.message || '删除文件失败');
     },
   });
 
@@ -79,7 +76,7 @@ export default function FileList({ appId }: FileListProps) {
 
   const handleDelete = (fileId: string) => {
     if (confirm('确定要删除这个文件吗？')) {
-      deleteFileMutation.mutate(fileId);
+      deleteFileMutation.mutate({ fileId });
     }
   };
 

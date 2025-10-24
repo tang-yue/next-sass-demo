@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { trpcClient } from "@/utils/api";
+import { trpcClientReact } from "@/utils/api";
 import { ArrowLeft, Save } from "lucide-react";
 
 const formSchema = z.object({
@@ -33,7 +32,6 @@ interface PageProps {
 
 export default function EditStorageConfigPage({ params }: PageProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const resolvedParams = use(params);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -50,11 +48,10 @@ export default function EditStorageConfigPage({ params }: PageProps) {
   });
 
   // 获取存储配置信息
-  const { data: storageData, isLoading, error } = useQuery({
-    queryKey: ['storage', 'getById', parseInt(resolvedParams.storageId)],
-    queryFn: () => trpcClient.storage.getById.query({ id: parseInt(resolvedParams.storageId) }),
-    enabled: !!resolvedParams.storageId
-  });
+  const { data: storageData, isLoading, error } = trpcClientReact.storage.getById.useQuery(
+    { id: parseInt(resolvedParams.storageId) },
+    { enabled: !!resolvedParams.storageId }
+  );
 
   // 更新表单数据
   useEffect(() => {
@@ -71,27 +68,9 @@ export default function EditStorageConfigPage({ params }: PageProps) {
     }
   }, [storageData, form]);
 
-  const updateStorageMutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      const { name, bucket, region, accessKeyId, secretAccessKey, apiEndpoint } = data;
-      const result = await trpcClient.storage.update.mutate({
-        id: parseInt(resolvedParams.storageId),
-        name,
-        configuration: {
-          bucket,
-          region,
-          accessKeyId,
-          secretAccessKey,
-          apiEndpoint: apiEndpoint || undefined,
-        },
-      });
-      return result;
-    },
-    onSuccess: (data: any) => {
+  const updateStorageMutation = trpcClientReact.storage.update.useMutation({
+    onSuccess: async (data: any) => {
       console.log("Storage updated successfully:", data);
-      // 清除存储配置缓存
-      queryClient.invalidateQueries({ queryKey: ['storage', 'getAll'] });
-      queryClient.invalidateQueries({ queryKey: ['storage', 'getById'] });
       // 跳转回存储配置管理页面
       router.push(`/uppyUpload/apps/${resolvedParams.id}/storage`);
     },
@@ -103,7 +82,18 @@ export default function EditStorageConfigPage({ params }: PageProps) {
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      await updateStorageMutation.mutateAsync(data);
+      const { name, bucket, region, accessKeyId, secretAccessKey, apiEndpoint } = data;
+      await updateStorageMutation.mutateAsync({
+        id: parseInt(resolvedParams.storageId),
+        name,
+        configuration: {
+          bucket,
+          region,
+          accessKeyId,
+          secretAccessKey,
+          apiEndpoint: apiEndpoint || undefined,
+        },
+      });
     } catch (error) {
       console.error("Error updating storage:", error);
     } finally {

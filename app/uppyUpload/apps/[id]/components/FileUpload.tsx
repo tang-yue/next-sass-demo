@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { trpcClient } from "@/utils/api";
+import { trpcClientReact } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -25,36 +24,19 @@ export default function FileUpload({ appId, onUploadComplete }: FileUploadProps)
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const queryClient = useQueryClient();
 
   // 获取应用信息和存储配置
-  const { data: appData } = useQuery({
-    queryKey: ['apps', 'getById', appId],
-    queryFn: () => trpcClient.app.getById.query({ id: appId }),
-  });
+  const { data: appData } = trpcClientReact.app.getById.useQuery({ id: appId });
 
-  const { data: storageData } = useQuery({
-    queryKey: ['storage', 'getById', appData?.app?.storageId],
-    queryFn: () => trpcClient.storage.getById.query({ id: appData?.app?.storageId! }),
-    enabled: !!appData?.app?.storageId
-  });
+  const { data: storageData } = trpcClientReact.storage.getById.useQuery(
+    { id: appData?.app?.storageId! },
+    { enabled: !!appData?.app?.storageId }
+  );
 
-  const createPresignedUrlMutation = useMutation({
-    mutationFn: (data: { filename: string; contentType: string; size: number; storageId?: number }) =>
-      trpcClient.file.createPresignedUrl.mutate(data),
-  });
+  // 使用 TRPC React Query hooks
+  const createPresignedUrlMutation = trpcClientReact.file.createPresignedUrl.useMutation();
 
-  const saveFileMutation = useMutation({
-    mutationFn: (data: { name: string; path: string; type: string; appId: string }) =>
-      trpcClient.file.saveFile.mutate(data),
-    onSuccess: () => {
-      console.log('File saved successfully, invalidating queries for appId:', appId);
-      queryClient.invalidateQueries({ 
-        queryKey: ['files', 'getFilesByAppId', appId],
-        exact: false // 清除所有包含这个 queryKey 的查询
-      });
-    },
-  });
+  const saveFileMutation = trpcClientReact.file.saveFile.useMutation();
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return;

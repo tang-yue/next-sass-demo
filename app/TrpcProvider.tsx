@@ -12,12 +12,12 @@ export function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 30 * 1000,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-        refetchOnReconnect: false,
-        refetchInterval: false,
-        refetchIntervalInBackground: false,
+        // staleTime: 50 * 1000,
+        // refetchOnWindowFocus: true,
+        // refetchOnMount: true,
+        // refetchOnReconnect: false,
+        // refetchInterval: false,
+        // refetchIntervalInBackground: false,
       },
       dehydrate: {
         // serializeData: superjson.serialize,

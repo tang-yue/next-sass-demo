@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { trpcClient } from "@/utils/api";
+import { trpcClientReact } from "@/utils/api";
 import { ArrowLeft, Plus, Settings, Trash2, Edit } from "lucide-react";
 import {
   AlertDialog,
@@ -27,28 +26,26 @@ interface PageProps {
 
 export default function StorageConfigPage({ params }: PageProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const resolvedParams = use(params);
   const [deletingStorageId, setDeletingStorageId] = useState<number | null>(null);
 
   // 获取应用信息
-  const { data: appData } = useQuery({
-    queryKey: ['apps', 'getById', resolvedParams.id],
-    queryFn: () => trpcClient.app.getById.query({ id: resolvedParams.id }),
-  });
+  const { data: appData, refetch: refetchApp } = trpcClientReact.app.getById.useQuery({ id: resolvedParams.id },
+    {
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+    }
+  );
 
   // 获取所有存储配置
-  const { data: storagesData, isLoading, error } = useQuery({
-    queryKey: ['storage', 'getAll'],
-    queryFn: () => trpcClient.storage.getAll.query(),
-  });
+  const { data: storagesData, isLoading, error, refetch } = trpcClientReact.storage.getAll.useQuery({});
 
   // 删除存储配置mutation
-  const deleteStorageMutation = useMutation({
-    mutationFn: (storageId: number) => trpcClient.storage.delete.mutate({ id: storageId }),
+  const deleteStorageMutation = trpcClientReact.storage.delete.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['storage', 'getAll'] });
       setDeletingStorageId(null);
+      refetch();
     },
     onError: (error: any) => {
       console.error('删除存储配置失败:', error);
@@ -57,12 +54,14 @@ export default function StorageConfigPage({ params }: PageProps) {
   });
 
   // 更新应用存储配置mutation
-  const updateAppStorageMutation = useMutation({
-    mutationFn: ({ appId, storageId }: { appId: string; storageId: number | null }) => 
-      trpcClient.storage.updateAppStorage.mutate({ appId, storageId }),
+  const updateAppStorageMutation = trpcClientReact.storage.updateAppStorage.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['apps', 'getById', resolvedParams.id] });
-      queryClient.invalidateQueries({ queryKey: ['storage', 'getById'] });
+      refetchApp();
+      refetch();
+    },
+    onError: (error: any) => {
+      console.error('更新应用存储配置失败:', error);
+      alert(error.message || '更新应用存储配置失败');
     },
   });
 
@@ -80,7 +79,7 @@ export default function StorageConfigPage({ params }: PageProps) {
 
   const confirmDeleteStorage = () => {
     if (deletingStorageId) {
-      deleteStorageMutation.mutate(deletingStorageId);
+      deleteStorageMutation.mutate({ id: deletingStorageId });
     }
   };
 

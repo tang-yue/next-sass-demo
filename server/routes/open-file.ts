@@ -97,6 +97,7 @@ export const withApiKeyMiddleware = t.middleware(async ({ next }) => {
             try {
                 jwt.verify(signedToken, apiKeyAndAppUser.key);
             } catch (err) {
+                console.log(apiKeyAndAppUser.key, signedToken)
                 throw new TRPCError({
                     code: "UNAUTHORIZED",
                     message: "Invalid token signature",

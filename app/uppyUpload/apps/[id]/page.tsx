@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { trpcClient } from "@/utils/api";
+import { trpcClientReact } from "@/utils/api";
 import { ArrowLeft, Plus, FolderOpen, Upload, Settings } from "lucide-react";
 import FileList from "./components/FileList";
 import FileUpload from "./components/FileUpload";
@@ -19,31 +18,23 @@ interface PageProps {
 
 export default function AppDetailPage({ params }: PageProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const resolvedParams = use(params);
   const [selectedAppId, setSelectedAppId] = useState<string>(resolvedParams.id);
   const [activeTab, setActiveTab] = useState<'files' | 'upload'>('files');
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const { data: appsData, isLoading: appsLoading } = useQuery({
-    queryKey: ['apps', 'getAll'],
-    queryFn: () => trpcClient.app.getAll.query(),
-    staleTime: 0, // 确保数据不会被认为是"新鲜的"
-    refetchOnMount: true, // 组件挂载时重新获取数据
-    refetchOnWindowFocus: true, // 窗口获得焦点时重新获取数据
-  });
-  const { data: appData, isLoading: appLoading, error: appError } = useQuery({
-    queryKey: ['apps', 'getById', resolvedParams.id],
-    queryFn: () => trpcClient.app.getById.query({ id: resolvedParams.id }),
-    enabled: !!resolvedParams.id
-  });
+  // 使用 TRPC React Query hooks
+  const { data: appsData, isLoading: appsLoading } = trpcClientReact.app.getAll.useQuery();
+  const { data: appData, isLoading: appLoading, error: appError } = trpcClientReact.app.getById.useQuery(
+    { id: resolvedParams.id },
+    { enabled: !!resolvedParams.id }
+  );
 
   // 获取存储配置信息
-  const { data: storageData } = useQuery({
-    queryKey: ['storage', 'getById', appData?.app?.storageId],
-    queryFn: () => trpcClient.storage.getById.query({ id: appData?.app?.storageId! }),
-    enabled: !!appData?.app?.storageId
-  });
+  const { data: storageData } = trpcClientReact.storage.getById.useQuery(
+    { id: appData?.app?.storageId! },
+    { enabled: !!appData?.app?.storageId }
+  );
 
   const handleAppSelect = (appId: string) => {
     setSelectedAppId(appId);
@@ -67,11 +58,6 @@ export default function AppDetailPage({ params }: PageProps) {
   const handleUploadComplete = () => {
     console.log('handleUploadComplete');
     setActiveTab('files');
-    // 直接清除文件列表的查询缓存
-    queryClient.invalidateQueries({ 
-      queryKey: ['files', 'getFilesByAppId', resolvedParams.id],
-      exact: false 
-    });
     setRefreshKey(prev => prev + 1); // 触发文件列表重新加载
   };
 

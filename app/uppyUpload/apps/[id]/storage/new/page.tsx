@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { trpcClient } from "@/utils/api";
+import { trpcClientReact } from "@/utils/api";
 import { ArrowLeft, Save } from "lucide-react";
 
 const formSchema = z.object({
@@ -32,7 +31,6 @@ interface PageProps {
 
 export default function NewStorageConfigPage({ params }: PageProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const resolvedParams = use(params);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,25 +46,9 @@ export default function NewStorageConfigPage({ params }: PageProps) {
     },
   });
 
-  const createStorageMutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      const { name, bucket, region, accessKeyId, secretAccessKey, apiEndpoint } = data;
-      const result = await trpcClient.storage.create.mutate({
-        name,
-        configuration: {
-          bucket,
-          region,
-          accessKeyId,
-          secretAccessKey,
-          apiEndpoint: apiEndpoint || undefined,
-        },
-      });
-      return result;
-    },
-    onSuccess: (data: any) => {
+  const createStorageMutation = trpcClientReact.storage.create.useMutation({
+    onSuccess: async (data: any) => {
       console.log("Storage created successfully:", data);
-      // 清除存储配置缓存
-      queryClient.invalidateQueries({ queryKey: ['storage', 'getAll'] });
       // 跳转回存储配置管理页面
       router.push(`/uppyUpload/apps/${resolvedParams.id}/storage`);
     },
@@ -78,7 +60,17 @@ export default function NewStorageConfigPage({ params }: PageProps) {
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      await createStorageMutation.mutateAsync(data);
+      const { name, bucket, region, accessKeyId, secretAccessKey, apiEndpoint } = data;
+      await createStorageMutation.mutateAsync({
+        name,
+        configuration: {
+          bucket,
+          region,
+          accessKeyId,
+          secretAccessKey,
+          apiEndpoint: apiEndpoint || undefined,
+        },
+      });
     } catch (error) {
       console.error("Error creating storage:", error);
     } finally {

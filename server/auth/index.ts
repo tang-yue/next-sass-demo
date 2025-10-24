@@ -1,9 +1,9 @@
-import NextAuth, {  DefaultSession, getServerSession as getServerSessionNextAuth } from "next-auth"
+import NextAuth, {  DefaultSession, getServerSession as getServerSessionNextAuth, NextAuthOptions } from "next-auth"
 import GithubProvider from "next-auth/providers/github"
 import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { db } from "@/server/db/db"
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   adapter: DrizzleAdapter(db),
   // Configure one or more authentication providers
   providers: [

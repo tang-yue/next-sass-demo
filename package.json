@@ -64,6 +64,7 @@
     "@types/use-sync-external-store": "1.5.0",
     "drizzle-kit": "0.31.4",
     "tailwindcss": "^4",
+    "tsup": "8.5.0",
     "tsx": "4.20.3",
     "tw-animate-css": "1.3.6",
     "typescript": "^5"
