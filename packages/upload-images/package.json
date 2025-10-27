@@ -1,24 +1,23 @@
 {
-  "name": "@next-sass-demo/api",
+  "name": "@next-sass-demo/upload-images",
   "version": "1.0.0",
   "private": true,
-  "description": "TRPC API client for Next SaaS Demo with Open API support",
+  "description": "A Preact-based image upload component with drag-and-drop support",
   "keywords": [
-    "trpc",
-    "api",
-    "client",
-    "typescript",
-    "nextjs"
+    "preact",
+    "upload",
+    "images",
+    "drag-and-drop",
+    "component"
   ],
   "author": "Next SaaS Demo Team",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/your-org/next-sass-demo",
-    "directory": "packages/api"
+    "directory": "packages/upload-images"
   },
   "main": "dist/index.js",
-  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
   "exports": {
@@ -40,10 +39,15 @@
     "clean": "rm -rf dist",
     "prepare": "pnpm build"
   },
-  "devDependencies": {
-    "@trpc/client": "11.4.3"
+  "dependencies": {
+    "preact": "^10.27.0"
   },
   "peerDependencies": {
-    "@trpc/client": "11.4.3"
+    "preact": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
   }
 }
+

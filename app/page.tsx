@@ -1,30 +1,19 @@
-// import Image from "next/image";
 'use client'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { usersTable } from "@/server/db/schema-back";
-import { db } from "@/server/db/db";
 import { UserInfo, UserInfoProvider } from "./UserInfo";
 import { LoginButton } from "./LoginButton";
-// import { getServerSession } from "@/server/auth";
-// import { redirect } from "next/navigation";
-import { cache, useEffect   } from "react";
-import { useQuery, dehydrate } from "@tanstack/react-query";
-import { makeQueryClient, useTRPC } from "./TrpcProvider";
-import { success } from "zod/v4";
-// import { trpc } from "@/utils/api";
+import { useTRPC } from "./TrpcProvider";
+import { trpcClientReact } from "@/utils/api";
 
 // type User = typeof usersTable.$inferSelect;
 
 export default function Home() {
   // 获取现有用户，而不是每次都插入新数据
  
-  const trpc = useTRPC();
-  const { data, isLoading, error, isSuccess } = useQuery(trpc.hello.queryOptions());
-  // if (isSuccess) {
-    console.log(data, "data isSuccess")
-  // }
+  const utils = useTRPC();
+  const { data: appsData } = trpcClientReact.app.getAll.useQuery();
   // const _queryClient = cache(makeQueryClient);
   // void _queryClient().prefetchQuery(trpc.hello.queryOptions());
   // const queryClient = _queryClient();

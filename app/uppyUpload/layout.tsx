@@ -23,7 +23,7 @@ export default async function DashboardLayout({
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center">
                             <h1 className="text-xl font-semibold text-gray-900">
-                                File Upload Dashboard
+                               文件管理系统
                             </h1>
                         </div>
                         

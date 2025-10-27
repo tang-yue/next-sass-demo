@@ -1,5 +1,6 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { openRouter } from '@/server/open-router';
+import { Session } from 'next-auth';
 
 // CORS 配置
 const corsHeaders = {
@@ -22,7 +23,7 @@ const handler = async (req: Request) => {
     endpoint: "/api/open",
     router: openRouter,
     req,
-    createContext: async () => ({}),
+    createContext: async () => ({ session: null } as { session: Session | null }),
   });
 
   // 添加CORS头到响应

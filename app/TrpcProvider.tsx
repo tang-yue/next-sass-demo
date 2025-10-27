@@ -1,13 +1,7 @@
 "use client"
-import { QueryClient, QueryClientProvider, defaultShouldDehydrateQuery  } from '@tanstack/react-query';
-import { createTRPCClient, httpBatchLink } from '@trpc/client';
-import { cache, useState } from 'react';
-import { AppRouter } from '../utils/trpc';
-import { appRouter } from '../server/router';
+import { QueryClient, QueryClientProvider, defaultShouldDehydrateQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { trpcClient, trpcClientReact } from '../utils/api';
-import { createTRPCContext } from '@trpc/tanstack-react-query';
-import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
-import { getServerSession } from '@/server/auth';
 export function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -31,7 +25,10 @@ export function makeQueryClient() {
     },
   });
 }
-export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
+// Export useTRPC hook from the TRPC React integration
+export const useTRPC = () => {
+  return trpcClientReact.useUtils();
+};
 let browserQueryClient: QueryClient;
 function getQueryClient() {
   if (typeof window === 'undefined') {

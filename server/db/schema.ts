@@ -171,9 +171,9 @@ export const storageConfiguration = pgTable("storageConfiguration", {
   deletedAt: timestamp("deleted_at", { mode: "date" }),
 });
 
-export const storageConfigurationRelation = relations(apps, ({ one, many }) => ({
-  files: many(files),
-  user: one(users, { fields: [apps.userId], references: [users.id] })
+export const storageConfigurationRelation = relations(storageConfiguration, ({ one, many }) => ({
+  apps: many(apps),
+  user: one(users, { fields: [storageConfiguration.userId], references: [users.id] })
 }));
 
 export const apiKeys = pgTable("apiKeys", {

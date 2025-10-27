@@ -7,3 +7,15 @@ export const apiClient = createTRPCClient({
         }),
     ],
 });
+export const createApiClient = (headers = {}) => {
+    const header = Object.assign({}, headers);
+    return createTRPCClient({
+        links: [
+            httpBatchLink({
+                url: 'http://localhost:3000/api/open',
+                headers: header,
+            }),
+        ],
+    });
+};
+//# sourceMappingURL=index.js.map

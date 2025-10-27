@@ -37,7 +37,7 @@ export const withApiKeyMiddleware = t.middleware(async ({ next }) => {
                 app: {
                     with: {
                         user: true,
-                        storage: true,
+                        storage: true
                     },
                 },
             },
@@ -54,6 +54,7 @@ export const withApiKeyMiddleware = t.middleware(async ({ next }) => {
             ctx: {
                 app: apiKeyAndAppUser.app,
                 user: apiKeyAndAppUser.app.user,
+                storage: apiKeyAndAppUser.app.storage,
             },
         });
     } else if (signedToken) {
@@ -80,7 +81,7 @@ export const withApiKeyMiddleware = t.middleware(async ({ next }) => {
                     app: {
                         with: {
                             user: true,
-                            storage: true,
+                            storage: true
                         },
                     },
                 },
@@ -106,8 +107,9 @@ export const withApiKeyMiddleware = t.middleware(async ({ next }) => {
 
             return next({
                 ctx: {
-                    app: apiKeyAndAppUser.app,
+                    app: apiKeyAndAppUser.app, 
                     user: apiKeyAndAppUser.app.user,
+                    storage: apiKeyAndAppUser.app.storage,
                 },
             });
         } catch (error) {
@@ -207,11 +209,11 @@ export const openFileRoutes = router({
                 filename: z.string(),
                 contentType: z.string(),
                 size: z.number(),
-                storageId: z.number().optional(),
+                storageId: z.number().optional()
             })
         )
         .mutation(async ({ ctx, input }) => {
-            const { app, user } = ctx;
+            const { app, user, storage } = ctx;
 
             let storageConfig;
 
@@ -237,28 +239,8 @@ export const openFileRoutes = router({
                 }
 
                 storageConfig = storage[0].configuration;
-            } else if (app.storageId) {
-                // 使用应用默认的存储配置
-                const storage = await db
-                    .select()
-                    .from(storageConfiguration)
-                    .where(
-                        and(
-                            eq(storageConfiguration.id, app.storageId),
-                            eq(storageConfiguration.userId, user.id),
-                            isNull(storageConfiguration.deletedAt)
-                        )
-                    )
-                    .limit(1);
-
-                if (!storage[0]) {
-                    throw new TRPCError({
-                        code: "NOT_FOUND",
-                        message: "应用存储配置不存在",
-                    });
-                }
-
-                storageConfig = storage[0].configuration;
+            } else if (storage?.id) {
+                storageConfig = storage.configuration;
             } else {
                 // 使用环境变量作为默认配置
                 if (!bucket || !region || !apiEndpoint || !cosAppId || !cosAppSecret) {

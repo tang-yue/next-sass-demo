@@ -1,0 +1,42 @@
+{
+  "name": "@next-sass-demo/vue-upload-wrapper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Universal wrapper to convert Preact components to Vue components",
+  "keywords": [
+    "vue",
+    "preact",
+    "upload",
+    "images",
+    "wrapper"
+  ],
+  "author": "Next SaaS Demo Team",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepare": "pnpm build"
+  },
+  "dependencies": {
+    "preact": "^10.27.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "vue": "^3.5.22"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ]
+}
+

@@ -37,7 +37,10 @@ export default function OpenApiTestComponent() {
             url += `?${params.toString()}`;
         } else if (method === "POST" && body) {
             // POST请求添加Content-Type和请求体
-            options.headers!["Content-Type"] = "application/json";
+            options.headers = {
+                ...options.headers,
+                "Content-Type": "application/json"
+            };
             options.body = JSON.stringify(body);
         }
 
