@@ -44,7 +44,7 @@ export default function UppyUploadPage() {
           </Card>
 
           {/* 创建新应用卡片 */}
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleGoToNewApp}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
                 <Plus className="h-6 w-6 text-green-600" />
@@ -55,7 +55,7 @@ export default function UppyUploadPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">
+              <Button className="w-full" disabled>
                 创建新应用
               </Button>
             </CardContent>
@@ -73,7 +73,7 @@ export default function UppyUploadPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline">
+              <Button className="w-full" variant="outline" disabled>
                 上传文件
               </Button>
             </CardContent>

@@ -39,7 +39,7 @@ export default function StorageConfigPage({ params }: PageProps) {
   );
 
   // 获取所有存储配置
-  const { data: storagesData, isLoading, error, refetch } = trpcClientReact.storage.getAll.useQuery({});
+  const { data: storagesData, isLoading, error, refetch } = trpcClientReact.storage.getAll.useQuery();
 
   // 删除存储配置mutation
   const deleteStorageMutation = trpcClientReact.storage.delete.useMutation({

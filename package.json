@@ -10,13 +10,15 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:neon": "drizzle-kit push --config drizzle.config.neon.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "1.10.0",
     "@aws-sdk/client-s3": "3.879.0",
     "@aws-sdk/s3-request-presigner": "3.879.0",
     "@hookform/resolvers": "5.2.2",
+    "@neondatabase/serverless": "1.0.2",
     "@radix-ui/react-alert-dialog": "1.1.15",
     "@radix-ui/react-avatar": "1.1.10",
     "@radix-ui/react-dialog": "1.1.15",

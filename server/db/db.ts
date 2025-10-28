@@ -1,38 +1,15 @@
 import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
 import * as schema from "./schema";
-import { eq } from 'drizzle-orm';
-export const db = drizzle(process.env.DATABASE_URL!, { 
-  schema: schema
-});
 
+function getDb() {
+  if (process.env.NEON_DB_URL) {
+    const sql = neon(process.env.NEON_DB_URL!);
+    return drizzleNeon(sql, { schema: schema });
+  }
+  return drizzle(process.env.DATABASE_URL!, { schema: schema });
+}
 
-// async function main() {
-//   const user: typeof usersTable.$inferInsert = {
-//     name: 'John',
-//     age: 30,
-//     email: 'john@example.com',
-//   };
-//   await db.insert(usersTable).values(user);
-//   console.log('New user created!')
-//   const users = await db.select().from(usersTable);
-//   console.log('Getting all users from the database: ', users)
-//   /*
-//   const users: {
-//     id: number;
-//     name: string;
-//     age: number;
-//     email: string;
-//   }[]
-//   */
-//   await db
-//     .update(usersTable)
-//     .set({
-//       age: 31,
-//     })
-//     .where(eq(usersTable.email, user.email));
-//   console.log('User info updated!')
-//   // await db.delete(usersTable).where(eq(usersTable.email, user.email));
-//   console.log('User deleted!')
-// }
-// main();
+export const db = getDb();

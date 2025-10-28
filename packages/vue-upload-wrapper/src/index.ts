@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, onUnmounted, ref, h, watch } from 'vue'
+import { defineComponent, onMounted, onUnmounted, ref, h } from 'vue'
 import { jsx } from 'preact/jsx-runtime'
 import { render } from 'preact'
 
@@ -15,38 +15,18 @@ export function createPreactWrapper(preactComponent: any, name: string) {
     setup(_, { attrs, expose }) {
       const containerRef = ref<HTMLElement | null>(null)
       let preactContainer: HTMLElement | null = null
-      let currentAttrs = attrs
-
-      // 创建一个函数来重新渲染 Preact 组件
-      const renderPreactComponent = () => {
-        console.log('preactContainer:', preactContainer)
-        console.log('containerRef.value:', containerRef.value)
-        if (preactContainer && containerRef.value) {
-          // 将所有 attrs 传给 Preact 组件
-          console.log('currentAttrs:', currentAttrs)
-          const Component = jsx(preactComponent, currentAttrs as any)
-          render(Component, preactContainer)
-        }
-      }
 
       onMounted(() => {
-        console.log('onMounted', containerRef.value)
         if (containerRef.value) {
           preactContainer = document.createElement('div')
           preactContainer.style.width = '100%'
           containerRef.value.appendChild(preactContainer)
 
-          renderPreactComponent()
+          // 创建一个函数来重新渲染 Preact 组件
+          const Component = jsx(preactComponent, attrs as any)
+          render(Component, preactContainer)
         }
       })
-
-      // 监听 attrs 变化，重新渲染组件
-      watch(() => attrs, () => {
-        if (preactContainer && containerRef.value) {
-          currentAttrs = attrs
-          renderPreactComponent()
-        }
-      }, { deep: true, immediate: false })
 
       onUnmounted(() => {
         if (preactContainer) {
@@ -56,7 +36,11 @@ export function createPreactWrapper(preactComponent: any, name: string) {
 
       expose({
         refresh: () => {
-          renderPreactComponent()
+          // 刷新组件
+          if (preactContainer && containerRef.value) {
+            const Component = jsx(preactComponent, attrs as any)
+            render(Component, preactContainer)
+          }
         }
       })
 

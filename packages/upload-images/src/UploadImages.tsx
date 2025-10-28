@@ -41,6 +41,7 @@ export function UploadImages({
   dragAreaClassName = '',
   uploadFunction,
 }: UploadImagesProps) {
+  console.log('UploadImages component initialized with uploadFunction:', typeof uploadFunction, uploadFunction)
   const [uploadImages, setUploadImages] = useState<UploadImage[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -135,17 +136,17 @@ export function UploadImages({
     setUploadImages(prev => prev.filter(img => img.id !== id));
   };
 
-  const handleDragOver = (e: DragEvent) => {
+  const handleDragOver = (e: any) => {
     e.preventDefault();
     setIsDragOver(true);
   };
 
-  const handleDragLeave = (e: DragEvent) => {
+  const handleDragLeave = (e: any) => {
     e.preventDefault();
     setIsDragOver(false);
   };
 
-  const handleDrop = (e: DragEvent) => {
+  const handleDrop = (e: any) => {
     e.preventDefault();
     setIsDragOver(false);
     if (e.dataTransfer?.files) {

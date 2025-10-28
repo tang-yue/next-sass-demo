@@ -18,10 +18,11 @@ export function Popover({ children }: { children: React.ReactNode }) {
 export function PopoverTrigger({ asChild, children }: { asChild?: boolean; children: React.ReactElement }) {
   const ctx = React.useContext(PopoverContext);
   if (!ctx) return children;
+  const originalProps = children.props as any;
   const props = {
     onClick: (e: React.MouseEvent) => {
       ctx.setOpen(!ctx.open);
-      if (children.props.onClick) children.props.onClick(e);
+      originalProps?.onClick?.(e);
     },
     "aria-expanded": ctx.open,
   } as any;

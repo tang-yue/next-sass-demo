@@ -25,6 +25,7 @@ export type AppRouter = import("../server/router").AppRouter;
 
 // 创建一个服务端组件的调用者，用于在服务端组件中调用 tRPC 路由
 import { appRouter } from "../server/router";
+
 export const caller = appRouter.createCaller(
   async () => ({
     session: await getServerSession(),

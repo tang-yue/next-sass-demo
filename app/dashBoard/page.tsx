@@ -3,11 +3,11 @@ import { caller } from '../../utils/trpc';
 
 
 export default async function DashBoard() {
-  const data = await caller.hello();
+  const data = await caller.app.getAll();
   return (
     <div>
       <h1>DashBoard</h1>
-      <p>{data.message}</p>
+      <p>Total apps: {data.apps?.length || 0}</p>
     </div>
   )
 }
