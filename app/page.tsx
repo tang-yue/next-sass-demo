@@ -11,9 +11,7 @@ import { trpcClientReact } from "@/utils/api";
 
 export default function Home() {
   // 获取现有用户，而不是每次都插入新数据
- 
-  const utils = useTRPC();
-  const { data: appsData } = trpcClientReact.app.getAll.useQuery();
+
   // const _queryClient = cache(makeQueryClient);
   // void _queryClient().prefetchQuery(trpc.hello.queryOptions());
   // const queryClient = _queryClient();
