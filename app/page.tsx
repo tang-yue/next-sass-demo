@@ -6,12 +6,14 @@ import { UserInfo, UserInfoProvider } from "./UserInfo";
 import { LoginButton } from "./LoginButton";
 import { useTRPC } from "./TrpcProvider";
 import { trpcClientReact } from "@/utils/api";
+import { useRouter } from "next/navigation";
+
 
 // type User = typeof usersTable.$inferSelect;
 
 export default function Home() {
   // 获取现有用户，而不是每次都插入新数据
-
+  const router = useRouter();
   // const _queryClient = cache(makeQueryClient);
   // void _queryClient().prefetchQuery(trpc.hello.queryOptions());
   // const queryClient = _queryClient();
@@ -22,11 +24,11 @@ export default function Home() {
     <UserInfoProvider>
       <div className="h-screen flex flex-col gap-8 p-4">
         <form className="w-full flex flex-col gap-4 max-w-xl mx-auto">
-          <h1 className="text-2xl font-bold text-center">Hello World</h1>
-          <p className="text-sm text-gray-500 text-center">🚀 CI/CD 自动化测试</p>
+          <h1 className="text-2xl font-bold text-center">Hello, Welcome to the file management system.</h1>
+          { /*<p className="text-sm text-gray-500 text-center">🚀 CI/CD 自动化测试</p>
           <Input name="name" type="text" placeholder="Enter your name" />
-          <Textarea name="message" placeholder="Enter your message" />
-          <Button type="submit">Submit</Button>
+          <Textarea name="message" placeholder="Enter your message" /> */}
+          {/* <Button type="submit" onClick={() => router.push('/dashBoard')}>进入文件管理系统</Button> */}
         </form>
         
         {/* GitHub 登录区域 */}
@@ -38,12 +40,12 @@ export default function Home() {
         </div>
 
         {/* 用户信息区域 */}
-        <div className="w-full max-w-xl mx-auto">
+        {/* <div className="w-full max-w-xl mx-auto">
           <div className="border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">用户信息</h2>
             <UserInfo />
           </div>
-        </div>
+        </div> */}
 
          {/* <div className="flex flex-col gap-4 max-w-xl mx-auto w-full">
            <h2 className="text-xl font-semibold">Users:</h2>

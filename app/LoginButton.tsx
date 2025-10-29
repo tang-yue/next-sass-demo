@@ -2,10 +2,10 @@
 
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-
+import { useRouter } from "next/navigation"
 export function LoginButton() {
   const { data: session, status } = useSession()
-
+  const router = useRouter()
   if (status === "loading") {
     return <Button disabled>Loading...</Button>
   }
@@ -18,6 +18,7 @@ export function LoginButton() {
           <p className="font-semibold">{session.user?.name}</p>
           <p className="text-sm text-gray-500">{session.user?.email}</p>
         </div>
+        <Button onClick={() => router.push('/uppyUpload')}>进入文件管理系统</Button>
         <Button 
           onClick={() => signOut()}
           variant="outline"
