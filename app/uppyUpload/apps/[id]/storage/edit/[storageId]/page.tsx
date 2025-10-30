@@ -188,7 +188,7 @@ export default function EditStorageConfigPage({ params }: PageProps) {
                       name="bucket"
                       render={({ field }: any) => (
                         <FormItem>
-                          <FormLabel>存储桶名称</FormLabel>
+                          <FormLabel>Bucket</FormLabel>
                           <FormControl>
                             <Input
                               placeholder="请输入存储桶名称"
@@ -205,10 +205,10 @@ export default function EditStorageConfigPage({ params }: PageProps) {
                       name="region"
                       render={({ field }: any) => (
                         <FormItem>
-                          <FormLabel>区域</FormLabel>
+                          <FormLabel>Region</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="请输入区域，如：us-east-1"
+                              placeholder="请输入Region，如：ap-shanghai"
                               {...field}
                             />
                           </FormControl>
@@ -258,10 +258,10 @@ export default function EditStorageConfigPage({ params }: PageProps) {
                     name="apiEndpoint"
                     render={({ field }: any) => (
                       <FormItem>
-                        <FormLabel>API端点 (可选)</FormLabel>
+                        <FormLabel>API Endpoint</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="请输入API端点，如：https://s3.amazonaws.com"
+                            placeholder="请输入API Endpoint，如：https://s3.amazonaws.com"
                             {...field}
                           />
                         </FormControl>

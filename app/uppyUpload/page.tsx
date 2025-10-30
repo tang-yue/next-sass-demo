@@ -55,9 +55,9 @@ export default function UppyUploadPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" disabled>
+              {/* <Button className="w-full" disabled>
                 创建新应用
-              </Button>
+              </Button> */}
             </CardContent>
         </Card>
 
@@ -73,9 +73,9 @@ export default function UppyUploadPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline" disabled>
+              {/* <Button className="w-full" variant="outline" disabled>
                 上传文件
-              </Button>
+              </Button> */}
             </CardContent>
           </Card>
                             </div>
@@ -92,6 +92,7 @@ export default function UppyUploadPage() {
                   <h3 className="font-semibold text-lg mb-2">应用管理</h3>
                   <ul className="text-sm text-gray-600 space-y-1">
                     <li>• 创建和管理多个应用</li>
+                    <li>• 每个应用支持配置文件上传配置（支持腾讯云COS）</li>
                     <li>• 每个应用独立管理文件</li>
                     <li>• 应用间快速切换</li>
                   </ul>
